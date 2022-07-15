@@ -1,0 +1,1 @@
+/usr/bin/c++    -rdynamic CMakeFiles/epollserver.dir/main.cpp.o CMakeFiles/epollserver.dir/Epollme.cpp.o CMakeFiles/epollserver.dir/Server.cpp.o  -o epollserver 

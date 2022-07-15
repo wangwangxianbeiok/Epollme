@@ -1,12 +1,12 @@
 #include "Server.h"
-
+#include "Epollme.h"
 int main() {
-	Server  serv(8901);
+	Server  serv(8981);
 	serv.init();
 	Epollme epollObj;
 	serv.epollPointer = &epollObj;
 	epollObj.addFD(serv.m_listen_fd, serv.m_listen_event);
-	epoll_event lset[SOMAXCONN];
+	epoll_event lset[SOMAXCON];
 	while (true) {
 		int n = epollObj.wait(lset);
 		if ( n< 0) {
@@ -24,17 +24,17 @@ int main() {
 			if (lset[i].events & EPOLLIN) {
 				int clientfd = accept(serv.m_listen_fd, (struct sockaddr*)&clientaddr, &clientaddrlen);
 				if (clientfd != -1) {
-					int old = fcntl(clinetfd,F_GETFL,0);
+					int old = fcntl(clientfd,F_GETFL,0);
 					int newf = old| O_NONBLOCK;
 					if (fcntl(clientfd, F_SETFL, newf) == -1) {
 						std::cout << "set nonblock error"<<std::endl;
-						close(clienfd);
+						close(clientfd);
 					}
 					else {
 						epoll_event client_fd_event;
 						client_fd_event.data.fd = clientfd;
 						client_fd_event.events = EPOLLIN;
-						if (epollObj.addFD(clientfd, client_fd_event)) {
+						if (epollObj.addFD(clientfd, client_fd_event) != -1) {
 							std::cout << "new talker:" << clientfd << std::endl;
 						}
 						else {
@@ -48,7 +48,7 @@ int main() {
 					char ch[255];
 					int m = recv(lset[i].data.fd, &ch, 255, 0);
 					if (m == 0) {
-						if (epollObj.deleteFD(lset[i].data.fd) != -1) {
+						if (epollObj.deleteFD(lset[i]) != -1) {
 							std::cout << "talker" << lset[i].data.fd << "leave" << std::endl;
 						}
 						close(lset[i].data.fd);
@@ -61,8 +61,8 @@ int main() {
 					}
 					else {
 						std::cout << "talker" << lset[i].data.fd << ':';
-						for (auto& c : ch) {
-							if (c == '\n') {
+						for (auto c : ch) {
+							if (c == ' ') {
 								break;
 							}
 							std::cout << c;

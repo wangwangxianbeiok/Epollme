@@ -1,11 +1,13 @@
 #pragma once
+#ifndef MYSERVER
+#define MYSERVER
 #include "Epollme.h"
-#define SOMAXCONN 10240
+#define SOMAXCON 10240
 class Server
 {
 public:
 	Server() {};
-	~Server() {};
+	~Server();
 	Server(size_t port) :m_port(port) {}
 	int init();
 private:
@@ -19,3 +21,4 @@ public:
 	epoll_event m_listen_event;
 	
 };
+#endif
